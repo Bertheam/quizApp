@@ -13,12 +13,13 @@ use App\Models\UserApiKey;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\UserApiCodePin;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class ApiController extends Controller
 {
 
-    //fonction pour verifier le matricule et envoyer un cde pin en sms a l'user
-    //s'il n' y a pas de telephone la fonction envoi un message personnalise
+ 
     public function authCheckIdentifiant(Request $request)
     {
         $email = $request->input('email');
@@ -51,7 +52,7 @@ class ApiController extends Controller
         }
     }
     public function genereteCodePin($user){
-        $codePinGenere = $this->generateSmsCode();
+        $codePinGenere = $this->generateEmailCode();
         $userCodePin = new UserApiCodePin();
         $userCodePin->code_pin = $codePinGenere;
         $userCodePin->date_validite = now()->addMinutes(5);
@@ -66,9 +67,9 @@ class ApiController extends Controller
     public function authCheckSmsCode(Request $request)
     {
         $codePinEntree = $request->input('code_pin');
-        $email = $request->input('matricule_beneficiaire');
+        $email = $request->input('email');
 
-        $user = User::where('matricule_beneficiaire', $email)
+        $user = User::where('email', $email)
             ->first();
         if (!$user) {
             return response()->json(
@@ -109,7 +110,7 @@ class ApiController extends Controller
         $userApiKey = new UserApiKey();
         $authKeyGenere = $this->generateAuthKey();
         $userApiKey->api_key = $authKeyGenere;
-        $userApiKey->date_validite = now()->addMonths(1);
+        $userApiKey->date_validite = null;
         $userApiKey->user_id = $user->id;
         $userApiKey->save();
 
@@ -124,7 +125,7 @@ class ApiController extends Controller
 
 
     //fonction pour generer le code Sms
-    public function generateSmsCode()
+    public function generateEmailCode()
     {
         return rand(1000, 9999);
     }
@@ -141,6 +142,38 @@ class ApiController extends Controller
         $api_key = $request->bearerToken();
         $userApiKey = UserApiKey::where('api_key', $api_key)->first();
         return User::find($userApiKey->user_id);
+    }
+
+    public function createUser(Request $request){
+
+        // Validation des données
+        $validator = Validator::make($request->all(), [
+            'nom' => 'required',
+            'prenom' => 'required',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|min:8',
+            'role' => 'required|in:student,teacher',
+            'filiere' => 'required_if:role,==,student',
+            'classes' => 'required_if:role,==,teacher',
+            'profession' => 'required_if:role,==,teacher',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Création de l'utilisateur
+        $user = User::create([
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+            'prenom' => $request->prenom,
+            'filiere' => $request->filiere ?? null,
+            'classes' => $request->classes ?? null,
+            'profession' => $request->profession ?? null,
+        ]);
+
+        return response()->json(['user' => $user], 201);
     }
 
     public function createQuiz(Request $request)

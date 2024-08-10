@@ -16,8 +16,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('adherent',[ApiController::class,'getAllAdherents']);
-Route::post('auth-check-matricule',[ApiController::class,'authCheckMatricule']);
+Route::post('auth-check-identifiant',[ApiController::class,'authCheckIdentifiant']);
 Route::post('auth-check-codePin',[ApiController::class,'authCheckSmsCode']);
+Route::post('/create-users', [ApiController::class, 'createUser']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
