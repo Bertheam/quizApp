@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\ApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('adherent',[ApiController::class,'getAllAdherents']);
 Route::post('auth-check-identifiant',[ApiController::class,'authCheckIdentifiant']);
 Route::post('auth-check-codePin',[ApiController::class,'authCheckSmsCode']);
-Route::post('/create-users', [ApiController::class, 'createUser']);
+Route::post('/create-user', [ApiController::class, 'createUser']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

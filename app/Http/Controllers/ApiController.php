@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Models\Question;
 use App\Models\Quiz;
@@ -103,7 +103,7 @@ class ApiController extends Controller
         }
 
         //on supprime les autres code de cet user
-        $deleteUserAutreApiKey = UserApiKey::where('user_id', $user->id)->delete();
+        $deleteUserAutreApiKey = UserApiKey::where('users_id', $user->id)->delete();
 
 
         //on genere la nouvelle cle
@@ -150,9 +150,9 @@ class ApiController extends Controller
         $validator = Validator::make($request->all(), [
             'nom' => 'required',
             'prenom' => 'required',
-            'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|min:8',
-            'role' => 'required|in:student,teacher',
+            'email' => 'required|email|unique:users',
+            'password' => 'required',
+            'role' => 'required|in:etudiant,professeur',
             'filiere' => 'required_if:role,==,student',
             'classes' => 'required_if:role,==,teacher',
             'profession' => 'required_if:role,==,teacher',
@@ -167,6 +167,7 @@ class ApiController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'nom' => $request->nom,
             'prenom' => $request->prenom,
             'filiere' => $request->filiere ?? null,
             'classes' => $request->classes ?? null,
